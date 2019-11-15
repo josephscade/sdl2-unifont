@@ -8,7 +8,7 @@ use bit_field::BitField;
 use std::collections::HashMap;
 use std::slice::IterMut;
 
-use unifont;
+use crate::unifont;
 
 /// Number of vertical pixels in each Unifont character.
 const UNIFONT_HEIGHT: u32 = 16;
@@ -78,9 +78,9 @@ impl SurfaceRenderer {
         // Obtain raw surface data reference, then draw characters of string
         // through `draw_raw`
         if surf.must_lock() {
-            surf.with_lock_mut(|px: &mut [u8]| self.draw_raw(px, &width, text))?
+            surf.with_lock_mut(|px: &mut [u8]| self.draw_raw(px, width, text))?
         } else {
-            self.draw_raw(surf.without_lock_mut().unwrap(), &width, text)?
+            self.draw_raw(surf.without_lock_mut().unwrap(), width, text)?
         }
 
         Ok(surf)
@@ -115,7 +115,7 @@ impl SurfaceRenderer {
     fn draw_raw(
         &self,
         pixels: &mut [u8],
-        surf_width: &u32,
+        surf_width: u32,
         text: &str,
     ) -> Result<(), String> {
         let unifont = get_unifont()?;
@@ -127,7 +127,7 @@ impl SurfaceRenderer {
         for c in iter {
             // Retrieve character description from hashmap
             let font_char = match unifont.get(&(c as u32)) {
-                None => return Err(gen_missing_char_str(&c)),
+                None => return Err(gen_missing_char_str(c)),
                 Some(font_char) => font_char,
             };
 
@@ -289,7 +289,7 @@ impl FormattedRenderer {
     /// it's been changed by modifying a renderer's background colour through
     /// the `iter_mut` method).
     pub fn get_bg_color(&self) -> Color {
-        return self.bg_color;
+        self.bg_color
     }
 
     /// Sets the scale of each component in the formatted output.
@@ -302,7 +302,7 @@ impl FormattedRenderer {
 
     /// Gets the current scale factor used for draw operations.
     pub fn get_scale(&self) -> u32 {
-        return self.scale;
+        self.scale
     }
 
     /// Returns an iterator over each renderer, which allows the renderers'
@@ -327,7 +327,7 @@ impl FormattedRenderer {
         // Draw text
         let mut offset: u32 = 0;
         for (text, renderer) in
-            (&self.text).into_iter().zip((&self.renderers).into_iter())
+            self.text.iter().zip((&self.renderers).iter())
         {
             let text = if text.0 {
                 &text.1
@@ -354,7 +354,7 @@ impl FormattedRenderer {
     pub fn measure_width(&self) -> Result<u32, String> {
         let mut width = 0;
         for (text, renderer) in
-            (&self.text).into_iter().zip((&self.renderers).into_iter())
+            (&self.text).iter().zip((&self.renderers).iter())
         {
             if text.0 {
                 width += renderer.measure_width(&text.1)?;
@@ -390,7 +390,7 @@ fn get_unifont<'a>() -> Result<&'a unifont::FontChars, String> {
     match unifont::get_unifont() {
         Ok(unifont) => Ok(unifont),
         Err(_) => {
-            return Err("Failed to initialise embedded Unifont".to_string())
+            Err("Failed to initialise embedded Unifont".to_string())
         }
     }
 }
@@ -407,7 +407,7 @@ fn count_char_width(text: &str) -> Result<u32, String> {
 
     for c in iter {
         match unifont.get(&(c as u32)) {
-            None => return Err(gen_missing_char_str(&c)),
+            None => return Err(gen_missing_char_str(c)),
             Some(fc) => width_sum += fc.width as u32,
         }
     }
@@ -415,9 +415,9 @@ fn count_char_width(text: &str) -> Result<u32, String> {
     Ok(width_sum)
 }
 
-fn gen_missing_char_str(c: &char) -> String {
+fn gen_missing_char_str(c: char) -> String {
     format!(
         "Embedded Unifont does not contain {} (code point: 0x{:x})",
-        c, *c as u32
+        c, c as u32
     )
 }

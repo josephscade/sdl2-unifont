@@ -16,7 +16,7 @@ use lzma::LzmaReader;
 
 #[cfg(feature = "plane-0")]
 /// Contains the raw file contents of the Unifont plane 0 font
-const PLANE_0_RAW: &'static [u8] =
+const PLANE_0_RAW: &[u8] =
     include_bytes!(concat!(env!("OUT_DIR"), "/unifont-11.0.02.hex.xz"));
 
 #[cfg(feature = "plane-1")]
@@ -68,7 +68,7 @@ fn initialise_generic(font: &[u8]) -> Result<(), LzmaError> {
 
     for l in lines {
         let line = l.unwrap();
-        let mut split = line.split(":");
+        let mut split = line.split(':');
 
         // Parse code point of current character
         let codepoint = match split.next() {
@@ -99,9 +99,10 @@ fn initialise_generic(font: &[u8]) -> Result<(), LzmaError> {
 
         // Create and load binary bitmap array
         let mut bitmap_arr: [u16; 16] = [0; 16];
-        let mut bitmap_i = 0;
 
-        for i in 0..char_count / row_width {
+        let iter = (0..char_count / row_width).enumerate();
+
+        for (bitmap_i, i) in iter {
             let line = &bitmap[(i * row_width)..(i * row_width) + row_width];
 
             // Convert hex line bit pattern to binary
@@ -109,8 +110,6 @@ fn initialise_generic(font: &[u8]) -> Result<(), LzmaError> {
                 Ok(bit_line) => bit_line,
                 Err(_) => return corrupt_file_err,
             };
-
-            bitmap_i += 1;
         }
 
         // We have all the information we need; insert the completed character
@@ -129,6 +128,11 @@ fn initialise_generic(font: &[u8]) -> Result<(), LzmaError> {
 
 /// Called the first time that a reference to the `UNIFONT` hashmap is requested,
 /// in order to decompress and parse the embedded, xzipped .hex contents
+///
+/// # Safety
+///
+/// This function writes data to global variables. It should not be called
+/// while another thread is using the library (eg: drawing some text).
 pub unsafe fn initialise_unifont() -> Result<(), LzmaError> {
     // Initialise UNIFONT variable, since it _should_ be None at the moment
     UNIFONT = Some(Box::new(HashMap::new()));
@@ -151,7 +155,7 @@ pub fn get_unifont<'a>() -> Result<&'a FontChars, LzmaError> {
                 Ok(_) => get_unifont(),
                 Err(e) => {
                     UNIFONT = None;
-                    return Err(e);
+                    Err(e)
                 }
             },
 

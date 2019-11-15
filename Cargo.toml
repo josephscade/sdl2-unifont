@@ -1,5 +1,6 @@
 [package]
 name = "sdl2-unifont"
+edition = "2018"
 version = "1.0.1"
 
 authors = ["Carl Albrecht <invlpg@protonmail.com>"]
