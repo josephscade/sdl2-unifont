@@ -46,7 +46,8 @@ fn draw_demo<'a>(
         800,
         600,
         sdl2::pixels::PixelFormatEnum::RGBA8888,
-    ).unwrap();
+    )
+    .unwrap();
 
     // Used to create surfaces containing rendered text
     let mut renderer =
@@ -114,7 +115,8 @@ fn draw_demo<'a>(
                     0,
                     0,
                 ),
-            ).unwrap();
+            )
+            .unwrap();
     }
 
     /*
@@ -180,7 +182,7 @@ fn draw_demo<'a>(
     renderer.bg_color = Color::RGB(255, 0, 255);
     renderer.fg_color = Color::RGB(255, 255, 0);
     renderer
-    //.draw("You _can_ use whatever colours you want, but just not this. Never this.")
+        //.draw("You _can_ use whatever colours you want, but just not this. Never this.")
         .draw("You ")
         .unwrap()
         .blit(None, &mut screen, Rect::new(2, 330, 0, 0))
@@ -196,7 +198,8 @@ fn draw_demo<'a>(
             None,
             &mut screen,
             Rect::new((2 + you_size) as i32, 330, 0, 0),
-        ).unwrap();
+        )
+        .unwrap();
 
     let can_size = renderer.measure_width("can").unwrap();
 
@@ -208,7 +211,8 @@ fn draw_demo<'a>(
             None,
             &mut screen,
             Rect::new((2 + you_size + can_size) as i32, 330, 0, 0),
-        ).unwrap();
+        )
+        .unwrap();
 
     /*
      * Very simple FormattedRenderer demo. Unsafe only because we use a global
@@ -253,7 +257,8 @@ fn draw_demo<'a>(
                             0,
                             0,
                         ),
-                    ).unwrap();
+                    )
+                    .unwrap();
             }
         }
     };
